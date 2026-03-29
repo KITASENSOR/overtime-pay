@@ -10,6 +10,7 @@
             --secondary: #3498db;
             --success: #2ecc71;
             --danger: #e74c3c;
+            --warning: #e67e22;
             --bg-color: #f4f7f6;
             --sat-bg: #fdebd0;
             --sat-border: #f39c12;
@@ -19,23 +20,25 @@
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: #333;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
         }
 
         .container {
             background: #fff;
-            padding: 25px;
+            padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         h2 {
             text-align: center;
             color: var(--primary);
-            margin-top: 0;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
         }
 
         /* 頂部操作區 */
@@ -43,8 +46,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            margin-bottom: 15px;
             gap: 10px;
         }
 
@@ -52,9 +54,9 @@
             background: var(--secondary);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             font-weight: bold;
             transition: background 0.2s;
@@ -62,15 +64,15 @@
             text-align: center;
         }
 
-        .btn-setting:hover {
+        .btn-setting:active {
             background: #2980b9;
         }
 
         .calendar-header {
-            flex: 1;
+            flex: 1.5;
             text-align: center;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1.1em;
             padding: 8px;
             background: #ecf0f1;
             border-radius: 6px;
@@ -79,7 +81,7 @@
             user-select: none;
         }
 
-        .calendar-header:hover {
+        .calendar-header:active {
             background: #dfe6e9;
         }
         
@@ -89,27 +91,47 @@
             color: #7f8c8d;
         }
 
+        /* 統計結果區塊最佳化 */
         .result-box {
             background: #eafaf1;
-            padding: 18px;
+            padding: 12px 15px;
             border-radius: 8px;
-            text-align: center;
-            font-size: 1.3em;
-            margin: 0 0 20px 0;
+            margin: 0 0 15px 0;
             border: 2px solid var(--success);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .result-item:first-child {
+            border-right: 1px solid #bdc3c7;
+        }
+
+        .result-label {
+            font-size: 0.85em;
+            color: #555;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 1.3em;
             font-weight: bold;
         }
 
-        .result-box span {
-            color: var(--danger);
-            font-size: 1.2em;
-        }
+        .val-hours { color: var(--warning); }
+        .val-pay { color: var(--danger); }
 
         /* 月曆樣式 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 4px;
         }
 
         .day-name {
@@ -117,30 +139,28 @@
             font-weight: bold;
             background: var(--primary);
             color: white;
-            padding: 8px 0;
+            padding: 5px 0;
             border-radius: 4px;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
         .calendar-cell {
             background: #fff;
             border: 1px solid #bdc3c7;
-            height: 65px;
+            height: 48px;
             border-radius: 6px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 5px;
+            padding-top: 3px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
         }
 
-        .calendar-cell:hover {
-            background: #e8f8f5;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .calendar-cell:active {
+            transform: scale(0.95);
         }
 
         .calendar-cell.is-saturday {
@@ -159,7 +179,7 @@
         }
 
         .date-num {
-            font-size: 1em;
+            font-size: 0.9em;
             color: #555;
             font-weight: bold;
         }
@@ -170,13 +190,13 @@
 
         .hours-badge {
             margin-top: auto;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            margin-bottom: 3px;
+            font-size: 0.8em;
             font-weight: bold;
             color: #c0392b;
         }
 
-        /* 浮動視窗 (Modal) 共用樣式 */
+        /* 浮動視窗 (Modal) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -193,16 +213,16 @@
 
         .modal-content {
             background: #fff;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             width: 90%;
-            max-width: 320px;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 340px;
+            animation: popIn 0.2s ease-out;
         }
 
         @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
+            from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
@@ -212,22 +232,19 @@
             text-align: center;
             border-bottom: 2px solid #ecf0f1;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
         }
 
-        /* 薪資與日期輸入表單 */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
+        .form-group { margin-bottom: 15px; }
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
+            font-size: 0.9em;
         }
-        
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -236,33 +253,72 @@
             box-sizing: border-box;
         }
 
-        /* 時數加減器 */
+        .year-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ecf0f1;
+            padding: 8px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .year-selector button {
+            background: #bdc3c7;
+            border: none;
+            border-radius: 4px;
+            width: 35px;
+            height: 35px;
+            font-size: 18px;
+            cursor: pointer;
+            color: #2c3e50;
+        }
+        .year-selector span {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .month-card {
+            background: #f4f7f6;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 12px 0;
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        .month-card.active {
+            background: var(--sat-bg);
+            border-color: var(--sat-border);
+            color: #d35400;
+        }
+
         .stepper {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 25px 0;
+            margin: 20px 0;
         }
-
         .stepper button {
             background: #ecf0f1;
             color: #333;
             border: 1px solid #bdc3c7;
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             font-size: 24px;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
         }
-
-        .stepper button:active {
-            background: #bdc3c7;
-            transform: scale(0.95);
-        }
-
         .stepper span {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             margin: 0 25px;
             min-width: 40px;
@@ -270,60 +326,29 @@
             color: var(--primary);
         }
 
-        /* 視窗按鈕 */
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
+        .modal-actions { display: flex; gap: 10px; }
         .btn-confirm, .btn-cancel {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
         }
-
-        .btn-confirm {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-cancel {
-            background: #95a5a6;
-            color: white;
-        }
+        .btn-confirm { background: var(--success); color: white; }
+        .btn-cancel { background: #95a5a6; color: white; }
 
         .clear-btn {
             width: 100%;
             background: transparent;
             color: var(--danger);
             border: 1px solid var(--danger);
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.2s;
-        }
-
-        .clear-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* 行動裝置版面最佳化 */
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .container { padding: 15px; }
-            .top-controls { flex-direction: column; }
-            .btn-setting, .calendar-header { width: 100%; box-sizing: border-box; }
-            .calendar-cell { height: 55px; }
-            .date-num { font-size: 0.9em; }
-            .hours-badge { font-size: 0.8em; }
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -333,8 +358,14 @@
     <h2>加班費計算機</h2>
     
     <div class="result-box">
-        本月預估加班費<br>
-        <span id="totalOvertimePay">0</span> 元
+        <div class="result-item">
+            <div class="result-label">本月總時數</div>
+            <div class="result-value val-hours"><span id="totalOvertimeHours">0</span> hr</div>
+        </div>
+        <div class="result-item">
+            <div class="result-label">預估加班費</div>
+            <div class="result-value val-pay">$ <span id="totalOvertimePay">0</span></div>
+        </div>
     </div>
 
     <div class="top-controls">
@@ -368,28 +399,13 @@
 
 <div class="modal-overlay" id="dateModal">
     <div class="modal-content">
-        <h3>選擇月份</h3>
-        <div class="form-group">
-            <label for="yearSelect">年份</label>
-            <input type="number" id="yearSelect" min="2000" max="2100">
+        <h3>選擇年份與月份</h3>
+        <div class="year-selector">
+            <button id="btnPrevYear">◀</button>
+            <span id="displayYearModal">2026</span>
+            <button id="btnNextYear">▶</button>
         </div>
-        <div class="form-group">
-            <label for="monthSelect">月份</label>
-            <select id="monthSelect">
-                <option value="0">1月</option>
-                <option value="1">2月</option>
-                <option value="2">3月</option>
-                <option value="3">4月</option>
-                <option value="4">5月</option>
-                <option value="5">6月</option>
-                <option value="6">7月</option>
-                <option value="7">8月</option>
-                <option value="8">9月</option>
-                <option value="9">10月</option>
-                <option value="10">11月</option>
-                <option value="11">12月</option>
-            </select>
-        </div>
+        <div class="month-grid" id="monthCardContainer"></div>
         <div class="modal-actions">
             <button class="btn-cancel" id="btnCancelDate">取消</button>
             <button class="btn-confirm" id="btnConfirmDate">前往</button>
@@ -400,14 +416,15 @@
 <div class="modal-overlay" id="hoursModal">
     <div class="modal-content">
         <h3 id="modalDateDisplay">填寫加班時數</h3>
-        <p style="text-align:center; color:#7f8c8d; margin-top:-10px; font-size:14px;">(以 1 小時為單位)</p>
+        <p style="text-align:center; color:#7f8c8d; margin-top:-10px; font-size:13px;">(以 1 小時為單位)</p>
         <div class="stepper">
             <button id="btnMinus">-</button>
             <span id="currentHoursDisplay">0</span>
             <button id="btnPlus">+</button>
         </div>
         <div class="modal-actions">
-            <button class="btn-confirm" id="btnConfirmHours" style="width:100%;">確認</button>
+            <button class="btn-cancel" id="btnCancelHours">取消</button>
+            <button class="btn-confirm" id="btnConfirmHours">確認</button>
         </div>
     </div>
 </div>
@@ -415,9 +432,11 @@
 <script>
     // --- 狀態變數 ---
     let currentYear = new Date().getFullYear();
-    let currentMonth = new Date().getMonth(); // 0-11
-    let allOvertimeData = {}; // 存放所有月份資料: { "2026-2": { "1": 2, "15": 3 } }
+    let currentMonth = new Date().getMonth(); 
+    let tempSelectYear = currentYear;
+    let tempSelectMonth = currentMonth;
     
+    let allOvertimeData = {}; 
     let baseSalary = 30000;
     let bonus = 0;
 
@@ -425,46 +444,38 @@
     let tempHours = 0;
 
     // --- DOM 元素 ---
+    const totalOvertimeHoursDisplay = document.getElementById('totalOvertimeHours');
     const totalOvertimePayDisplay = document.getElementById('totalOvertimePay');
     const calendarGrid = document.getElementById('calendarGrid');
     const monthYearDisplay = document.getElementById('monthYearDisplay');
     
-    // 薪資 Modal
     const salaryModal = document.getElementById('salaryModal');
     const baseSalaryInput = document.getElementById('baseSalary');
     const bonusInput = document.getElementById('bonus');
     
-    // 日期 Modal
     const dateModal = document.getElementById('dateModal');
-    const yearSelect = document.getElementById('yearSelect');
-    const monthSelect = document.getElementById('monthSelect');
+    const displayYearModal = document.getElementById('displayYearModal');
+    const monthCardContainer = document.getElementById('monthCardContainer');
 
-    // 時數 Modal
     const hoursModal = document.getElementById('hoursModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const currentHoursDisplay = document.getElementById('currentHoursDisplay');
 
-    // --- 儲存與讀取 (包含最佳化機制) ---
+    // --- 儲存與讀取 ---
     function loadData() {
         const savedSalary = localStorage.getItem('ot_calc_baseSalary');
         if (savedSalary !== null) {
             baseSalary = parseFloat(savedSalary);
             baseSalaryInput.value = baseSalary;
         }
-
         const savedBonus = localStorage.getItem('ot_calc_bonus');
         if (savedBonus !== null) {
             bonus = parseFloat(savedBonus);
             bonusInput.value = bonus;
         }
-
         const savedData = localStorage.getItem('ot_calc_all_data');
         if (savedData !== null) {
-            try {
-                allOvertimeData = JSON.parse(savedData);
-            } catch (e) {
-                allOvertimeData = {};
-            }
+            try { allOvertimeData = JSON.parse(savedData); } catch (e) { allOvertimeData = {}; }
         }
     }
 
@@ -480,9 +491,7 @@
 
     function getMonthData() {
         const key = getCurrentMonthKey();
-        if (!allOvertimeData[key]) {
-            allOvertimeData[key] = {};
-        }
+        if (!allOvertimeData[key]) allOvertimeData[key] = {};
         return allOvertimeData[key];
     }
 
@@ -502,10 +511,8 @@
         const firstDay = new Date(currentYear, currentMonth, 1).getDay();
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-        // 填補空白
         for (let i = 0; i < firstDay; i++) {
-            const emptyCell = document.createElement('div');
-            calendarGrid.appendChild(emptyCell);
+            calendarGrid.appendChild(document.createElement('div'));
         }
 
         const monthData = getMonthData();
@@ -514,11 +521,8 @@
             const cell = document.createElement('div');
             cell.className = 'calendar-cell';
             
-            // 判斷是否為週六 (星期六 getDay() 為 6)
             const dayOfWeek = new Date(currentYear, currentMonth, i).getDay();
-            if (dayOfWeek === 6) {
-                cell.classList.add('is-saturday');
-            }
+            if (dayOfWeek === 6) cell.classList.add('is-saturday');
 
             const dateNum = document.createElement('div');
             dateNum.className = 'date-num';
@@ -527,7 +531,6 @@
             const hoursBadge = document.createElement('div');
             hoursBadge.className = 'hours-badge';
             
-            // 繪製既有時數
             if (monthData[i]) {
                 hoursBadge.textContent = `${monthData[i]} hr`;
                 cell.classList.add('has-hours');
@@ -541,10 +544,11 @@
         }
     }
 
-    // --- 計算邏輯 ---
+    // --- 計算邏輯 (加入總時數統計) ---
     function calculatePay() {
         const hourlyWage = (baseSalary + bonus) / 240;
         let totalPay = 0;
+        let totalHours = 0; // 新增：總時數累加變數
         const monthData = getMonthData();
 
         for (const dateStr in monthData) {
@@ -552,13 +556,12 @@
             const hours = monthData[date];
             
             if (hours > 0) {
-                const dayOfWeek = new Date(currentYear, currentMonth, date).getDay();
+                totalHours += hours; // 累加時數
                 
+                const dayOfWeek = new Date(currentYear, currentMonth, date).getDay();
                 if (dayOfWeek === 6) {
-                    // 需求：週六以全天兩倍計算
                     totalPay += hours * hourlyWage * 2;
                 } else {
-                    // 平日計算 (前兩小時 1.34，第三小時起 1.67)
                     if (hours <= 2) {
                         totalPay += hours * hourlyWage * 1.34;
                     } else {
@@ -568,23 +571,19 @@
             }
         }
 
+        // 更新畫面顯示
+        totalOvertimeHoursDisplay.textContent = totalHours;
         totalOvertimePayDisplay.textContent = Math.round(totalPay).toLocaleString();
         saveData();
     }
 
     // --- 視窗控制邏輯 ---
-    
-    // 1. 薪資設定視窗
     document.getElementById('btnOpenSalaryModal').addEventListener('click', () => {
         baseSalaryInput.value = baseSalary;
         bonusInput.value = bonus;
         salaryModal.style.display = 'flex';
     });
-
-    document.getElementById('btnCancelSalary').addEventListener('click', () => {
-        salaryModal.style.display = 'none';
-    });
-
+    document.getElementById('btnCancelSalary').addEventListener('click', () => salaryModal.style.display = 'none');
     document.getElementById('btnConfirmSalary').addEventListener('click', () => {
         baseSalary = parseFloat(baseSalaryInput.value) || 0;
         bonus = parseFloat(bonusInput.value) || 0;
@@ -592,80 +591,76 @@
         calculatePay();
     });
 
-    // 2. 年月選擇視窗
+    function renderMonthCards() {
+        displayYearModal.textContent = tempSelectYear;
+        monthCardContainer.innerHTML = '';
+        for (let i = 0; i < 12; i++) {
+            const card = document.createElement('div');
+            card.className = 'month-card';
+            if (i === tempSelectMonth) card.classList.add('active');
+            card.textContent = `${i + 1}月`;
+            card.addEventListener('click', () => {
+                tempSelectMonth = i;
+                renderMonthCards();
+            });
+            monthCardContainer.appendChild(card);
+        }
+    }
+
+    document.getElementById('btnPrevYear').addEventListener('click', () => { tempSelectYear--; renderMonthCards(); });
+    document.getElementById('btnNextYear').addEventListener('click', () => { tempSelectYear++; renderMonthCards(); });
+
     monthYearDisplay.addEventListener('click', () => {
-        yearSelect.value = currentYear;
-        monthSelect.value = currentMonth;
+        tempSelectYear = currentYear;
+        tempSelectMonth = currentMonth;
+        renderMonthCards();
         dateModal.style.display = 'flex';
     });
 
-    document.getElementById('btnCancelDate').addEventListener('click', () => {
-        dateModal.style.display = 'none';
-    });
-
+    document.getElementById('btnCancelDate').addEventListener('click', () => dateModal.style.display = 'none');
     document.getElementById('btnConfirmDate').addEventListener('click', () => {
-        currentYear = parseInt(yearSelect.value);
-        currentMonth = parseInt(monthSelect.value);
+        currentYear = tempSelectYear;
+        currentMonth = tempSelectMonth;
         dateModal.style.display = 'none';
         renderCalendar();
         calculatePay();
     });
 
-    // 3. 時數填寫視窗
     function openHoursModal(date) {
         selectedDate = date;
         const monthData = getMonthData();
         tempHours = monthData[date] || 0;
-        
         const dayOfWeek = new Date(currentYear, currentMonth, date).getDay();
-        const satNote = (dayOfWeek === 6) ? ' <span style="color:#e67e22; font-size:0.8em;">(週六雙倍費率)</span>' : '';
-        
+        const satNote = (dayOfWeek === 6) ? ' <span style="color:#e67e22; font-size:0.8em;">(週六雙倍)</span>' : '';
         modalDateDisplay.innerHTML = `${currentMonth + 1}/${date} 加班時數${satNote}`;
         currentHoursDisplay.textContent = tempHours;
         hoursModal.style.display = 'flex';
     }
 
-    document.getElementById('btnPlus').addEventListener('click', () => {
-        tempHours += 1; // 修改為每次增加 1 小時
+    document.getElementById('btnPlus').addEventListener('click', () => { tempHours += 1; currentHoursDisplay.textContent = tempHours; });
+    document.getElementById('btnMinus').addEventListener('click', () => {
+        if (tempHours >= 1) tempHours -= 1;
+        else tempHours = 0;
         currentHoursDisplay.textContent = tempHours;
     });
 
-    document.getElementById('btnMinus').addEventListener('click', () => {
-        if (tempHours >= 1) { // 最小單位 1 小時
-            tempHours -= 1;
-            currentHoursDisplay.textContent = tempHours;
-        } else {
-            tempHours = 0;
-            currentHoursDisplay.textContent = tempHours;
-        }
-    });
-
+    document.getElementById('btnCancelHours').addEventListener('click', () => hoursModal.style.display = 'none');
     document.getElementById('btnConfirmHours').addEventListener('click', () => {
         const monthData = getMonthData();
-        if (tempHours === 0) {
-            delete monthData[selectedDate];
-        } else {
-            monthData[selectedDate] = tempHours;
-        }
+        if (tempHours === 0) delete monthData[selectedDate];
+        else monthData[selectedDate] = tempHours;
         hoursModal.style.display = 'none';
         renderCalendar();
         calculatePay();
     });
 
-    // 點擊背景關閉所有視窗
     [salaryModal, dateModal, hoursModal].forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     });
 
-    // 清除本月按鈕
     document.getElementById('btnClear').addEventListener('click', () => {
-        if (confirm(`確定要清除 ${currentYear}年 ${currentMonth + 1}月 的所有加班紀錄嗎？\n(薪資設定不會被清除)`)) {
-            const key = getCurrentMonthKey();
-            delete allOvertimeData[key];
+        if (confirm(`確定要清除 ${currentYear}年 ${currentMonth + 1}月 的所有紀錄嗎？`)) {
+            delete allOvertimeData[getCurrentMonthKey()];
             renderCalendar();
             calculatePay();
         }
