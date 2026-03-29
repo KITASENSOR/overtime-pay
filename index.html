@@ -51,11 +51,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            overflow: hidden; /* 防止內容溢出 */
         }
 
         .result-item {
             text-align: center;
             flex: 1;
+            min-width: 0; /* 讓 flex 子元素可以縮小 */
         }
 
         .result-item:first-child {
@@ -73,31 +75,46 @@
             font-weight: bold;
         }
 
-        .val-hours { color: var(--warning); font-size: 1.3em; }
-        .val-pay { color: var(--danger); font-size: 1.15em; }
+        .val-hours { 
+            color: var(--warning); 
+            font-size: 1.3em; 
+            white-space: nowrap; /* 強制同一列 */
+        }
+        
+        .val-pay { 
+            color: var(--danger); 
+            font-size: 1.1em; 
+            white-space: nowrap; /* 強制同一列 */
+            /* 如果螢幕真的太窄，允許水平滑動查看 */
+            overflow-x: auto; 
+            scrollbar-width: none; /* 隱藏捲軸 Firefox */
+        }
+        .val-pay::-webkit-scrollbar {
+            display: none; /* 隱藏捲軸 Chrome/Safari */
+        }
 
-        /* 頂部操作區與月份導覽 (最佳化為單列顯示) */
+        /* 頂部操作區與月份導覽 */
         .top-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            gap: 5px; /* 縮小間距 */
-            flex-wrap: nowrap; /* 強制不換行 */
+            gap: 5px;
+            flex-wrap: nowrap;
         }
 
         .btn-setting {
             background: var(--secondary);
             color: white;
             border: none;
-            padding: 8px 10px; /* 縮小內邊距 */
+            padding: 8px 10px;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
             font-weight: bold;
             transition: background 0.2s;
-            white-space: nowrap; /* 文字不換行 */
-            flex: 0 0 auto; /* 不強制拉伸 */
+            white-space: nowrap;
+            flex: 0 0 auto;
         }
 
         .btn-setting:active {
@@ -110,7 +127,7 @@
             background: #ecf0f1;
             border-radius: 6px;
             overflow: hidden;
-            flex: 0 0 auto; /* 保持自身寬度 */
+            flex: 0 0 auto;
         }
 
         .nav-arrow {
@@ -139,7 +156,7 @@
             transition: background 0.2s;
             user-select: none;
             white-space: nowrap;
-            min-width: 75px; /* 確保 10月與1月寬度切換時不會大幅跳動 */
+            min-width: 75px;
         }
 
         .calendar-header:active {
@@ -353,14 +370,31 @@
             font-size: 24px;
             border-radius: 8px;
             cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .stepper span {
             font-size: 26px;
             font-weight: bold;
-            margin: 0 25px;
-            min-width: 40px;
+            margin: 0 15px; /* 微調間距以容納新按鈕 */
+            min-width: 35px;
             text-align: center;
             color: var(--primary);
+        }
+        
+        /* 單日清除按鈕專屬樣式 */
+        .btn-clear-day {
+            background: transparent !important;
+            color: var(--danger) !important;
+            border: 1px solid var(--danger) !important;
+            margin-left: 15px;
+            font-size: 18px !important;
+            transition: all 0.2s;
+        }
+        .btn-clear-day:active {
+            background: var(--danger) !important;
+            color: white !important;
         }
 
         .modal-actions { display: flex; gap: 10px; }
@@ -468,6 +502,7 @@
             <button id="btnMinus">-</button>
             <span id="currentHoursDisplay">0</span>
             <button id="btnPlus">+</button>
+            <button id="btnClearDay" class="btn-clear-day" title="歸零當日時數">🗑️</button>
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" id="btnCancelHours">取消</button>
@@ -508,6 +543,7 @@
     const hoursModal = document.getElementById('hoursModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const currentHoursDisplay = document.getElementById('currentHoursDisplay');
+    const btnClearDay = document.getElementById('btnClearDay'); // 新增單日清除按鈕對象
 
     // --- 儲存與讀取 ---
     function loadData() {
@@ -563,7 +599,6 @@
 
     // --- 月曆繪製 ---
     function renderCalendar() {
-        // 移除多餘空白，確保畫面緊湊顯示在同一列
         monthYearDisplay.textContent = `${currentYear}年${currentMonth + 1}月`;
         
         calendarGrid.innerHTML = `
@@ -777,13 +812,21 @@
     }
 
     document.getElementById('btnPlus').addEventListener('click', () => { tempHours += 1; currentHoursDisplay.textContent = tempHours; });
+    
     document.getElementById('btnMinus').addEventListener('click', () => {
         if (tempHours >= 1) tempHours -= 1;
         else tempHours = 0;
         currentHoursDisplay.textContent = tempHours;
     });
+    
+    // --- 新增：單日清除時數邏輯 ---
+    btnClearDay.addEventListener('click', () => {
+        tempHours = 0;
+        currentHoursDisplay.textContent = tempHours;
+    });
 
     document.getElementById('btnCancelHours').addEventListener('click', () => hoursModal.style.display = 'none');
+    
     document.getElementById('btnConfirmHours').addEventListener('click', () => {
         const monthData = getMonthData();
         if (tempHours === 0) delete monthData[selectedDate];
