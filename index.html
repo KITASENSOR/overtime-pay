@@ -41,57 +41,7 @@
             font-size: 1.4em;
         }
 
-        /* 頂部操作區 */
-        .top-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            gap: 10px;
-        }
-
-        .btn-setting {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-            flex: 1;
-            text-align: center;
-        }
-
-        .btn-setting:active {
-            background: #2980b9;
-        }
-
-        .calendar-header {
-            flex: 1.5;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1em;
-            padding: 8px;
-            background: #ecf0f1;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-            user-select: none;
-        }
-
-        .calendar-header:active {
-            background: #dfe6e9;
-        }
-        
-        .calendar-header::after {
-            content: " ▾";
-            font-size: 0.8em;
-            color: #7f8c8d;
-        }
-
-        /* 統計結果區塊最佳化 */
+        /* 統計結果區塊 */
         .result-box {
             background: #eafaf1;
             padding: 12px 15px;
@@ -120,12 +70,88 @@
         }
 
         .result-value {
-            font-size: 1.3em;
             font-weight: bold;
         }
 
-        .val-hours { color: var(--warning); }
-        .val-pay { color: var(--danger); }
+        .val-hours { color: var(--warning); font-size: 1.3em; }
+        .val-pay { color: var(--danger); font-size: 1.15em; } /* 稍微調整字體大小以容納範圍文字 */
+
+        /* 頂部操作區與月份導覽 */
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .btn-setting {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            flex: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-setting:active {
+            background: #2980b9;
+        }
+
+        .month-nav-group {
+            flex: 1.5;
+            display: flex;
+            align-items: center;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .nav-arrow {
+            background: transparent;
+            border: none;
+            padding: 8px 12px;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: var(--primary);
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-arrow:active {
+            background: #bdc3c7;
+        }
+
+        .calendar-header {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .calendar-header:active {
+            background: #dfe6e9;
+        }
+        
+        .calendar-header::after {
+            content: " ▾";
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
 
         /* 月曆樣式 */
         .calendar-grid {
@@ -253,6 +279,18 @@
             box-sizing: border-box;
         }
 
+        /* 即時計算時薪的顯示區塊 */
+        .calculated-wage {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--danger);
+            border: 1px dashed #bdc3c7;
+        }
+
         .year-selector {
             display: flex;
             justify-content: space-between;
@@ -370,7 +408,11 @@
 
     <div class="top-controls">
         <button id="btnOpenSalaryModal" class="btn-setting">💰 設定薪資</button>
-        <div class="calendar-header" id="monthYearDisplay"></div>
+        <div class="month-nav-group">
+            <button id="btnPrevMonth" class="nav-arrow">◀</button>
+            <div class="calendar-header" id="monthYearDisplay"></div>
+            <button id="btnNextMonth" class="nav-arrow">▶</button>
+        </div>
     </div>
 
     <div class="calendar-grid" id="calendarGrid">
@@ -388,8 +430,14 @@
         </div>
         <div class="form-group">
             <label for="bonus">績效獎金 (元)</label>
-            <input type="number" id="bonus" value="0" min="0" step="1000">
+            <input type="number" id="bonus" min="0" step="1" placeholder="未填寫則顯示預估範圍">
         </div>
+        
+        <div class="form-group">
+            <label>計算時薪基準 (元/小時)</label>
+            <div class="calculated-wage">$ <span id="modalHourlyWageDisplay">125</span></div>
+        </div>
+
         <div class="modal-actions">
             <button class="btn-cancel" id="btnCancelSalary">取消</button>
             <button class="btn-confirm" id="btnConfirmSalary">儲存</button>
@@ -438,7 +486,7 @@
     
     let allOvertimeData = {}; 
     let baseSalary = 30000;
-    let bonus = 0;
+    let bonus = ''; // 空字串代表未輸入
 
     let selectedDate = null;
     let tempHours = 0;
@@ -452,6 +500,7 @@
     const salaryModal = document.getElementById('salaryModal');
     const baseSalaryInput = document.getElementById('baseSalary');
     const bonusInput = document.getElementById('bonus');
+    const modalHourlyWageDisplay = document.getElementById('modalHourlyWageDisplay');
     
     const dateModal = document.getElementById('dateModal');
     const displayYearModal = document.getElementById('displayYearModal');
@@ -468,11 +517,16 @@
             baseSalary = parseFloat(savedSalary);
             baseSalaryInput.value = baseSalary;
         }
+        
         const savedBonus = localStorage.getItem('ot_calc_bonus');
-        if (savedBonus !== null) {
+        if (savedBonus !== null && savedBonus !== '') {
             bonus = parseFloat(savedBonus);
             bonusInput.value = bonus;
+        } else {
+            bonus = '';
+            bonusInput.value = '';
         }
+
         const savedData = localStorage.getItem('ot_calc_all_data');
         if (savedData !== null) {
             try { allOvertimeData = JSON.parse(savedData); } catch (e) { allOvertimeData = {}; }
@@ -481,7 +535,7 @@
 
     function saveData() {
         localStorage.setItem('ot_calc_baseSalary', baseSalary);
-        localStorage.setItem('ot_calc_bonus', bonus);
+        localStorage.setItem('ot_calc_bonus', bonus); // 若未輸入則儲存空字串
         localStorage.setItem('ot_calc_all_data', JSON.stringify(allOvertimeData));
     }
 
@@ -493,6 +547,19 @@
         const key = getCurrentMonthKey();
         if (!allOvertimeData[key]) allOvertimeData[key] = {};
         return allOvertimeData[key];
+    }
+
+    // --- 工具函式：計算當月的工作日天數 (週一至週五) ---
+    function getWeekdaysInMonth(year, month) {
+        let count = 0;
+        let daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+            let dayOfWeek = new Date(year, month, i).getDay();
+            if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // --- 月曆繪製 ---
@@ -544,11 +611,18 @@
         }
     }
 
-    // --- 計算邏輯 (加入總時數統計) ---
+    // --- 計算邏輯 ---
     function calculatePay() {
-        const hourlyWage = (baseSalary + bonus) / 240;
-        let totalPay = 0;
-        let totalHours = 0; // 新增：總時數累加變數
+        const base = baseSalary || 0;
+        const isBonusEntered = bonus !== '';
+        const userBonus = isBonusEntered ? parseFloat(bonus) : 0;
+
+        // 計算當月可獲得的最高獎金 (工作日 x 60)
+        const weekdays = getWeekdaysInMonth(currentYear, currentMonth);
+        const maxPossibleBonus = weekdays * 60;
+
+        let totalHours = 0; 
+        let multiplierSum = 0; // 加班費的基數加乘總和
         const monthData = getMonthData();
 
         for (const dateStr in monthData) {
@@ -556,38 +630,109 @@
             const hours = monthData[date];
             
             if (hours > 0) {
-                totalHours += hours; // 累加時數
+                totalHours += hours; 
                 
                 const dayOfWeek = new Date(currentYear, currentMonth, date).getDay();
                 if (dayOfWeek === 6) {
-                    totalPay += hours * hourlyWage * 2;
+                    multiplierSum += hours * 2;
                 } else {
                     if (hours <= 2) {
-                        totalPay += hours * hourlyWage * 1.34;
+                        multiplierSum += hours * 1.34;
                     } else {
-                        totalPay += (2 * hourlyWage * 1.34) + ((hours - 2) * hourlyWage * 1.67);
+                        multiplierSum += (2 * 1.34) + ((hours - 2) * 1.67);
                     }
                 }
             }
         }
 
-        // 更新畫面顯示
         totalOvertimeHoursDisplay.textContent = totalHours;
-        totalOvertimePayDisplay.textContent = Math.round(totalPay).toLocaleString();
+
+        if (isBonusEntered) {
+            // 已輸入獎金：計算精確金額
+            const hourlyWage = (base + userBonus) / 240;
+            const totalPay = Math.round(hourlyWage * multiplierSum);
+            totalOvertimePayDisplay.textContent = totalPay.toLocaleString();
+        } else {
+            // 未輸入獎金：計算範圍金額
+            const minWage = base / 240;
+            const maxWage = (base + maxPossibleBonus) / 240;
+            
+            const minPay = Math.round(minWage * multiplierSum);
+            const maxPay = Math.round(maxWage * multiplierSum);
+
+            if (minPay === maxPay) {
+                // 如果時數為 0，不會有範圍落差
+                totalOvertimePayDisplay.textContent = minPay.toLocaleString();
+            } else {
+                totalOvertimePayDisplay.textContent = `${minPay.toLocaleString()} ~ ${maxPay.toLocaleString()}`;
+            }
+        }
+        
         saveData();
     }
 
     // --- 視窗控制邏輯 ---
+    
+    // 更新視窗內的時薪顯示 (包含範圍邏輯)
+    function updateModalHourlyWageDisplay() {
+        const currentBase = parseFloat(baseSalaryInput.value) || 0;
+        const bonusStr = bonusInput.value;
+        
+        if (bonusStr !== '') {
+            const currentBonus = parseFloat(bonusStr) || 0;
+            const calculatedWage = (currentBase + currentBonus) / 240;
+            modalHourlyWageDisplay.textContent = Math.round(calculatedWage * 100) / 100;
+        } else {
+            const weekdays = getWeekdaysInMonth(currentYear, currentMonth);
+            const maxPossibleBonus = weekdays * 60;
+            
+            const minWage = currentBase / 240;
+            const maxWage = (currentBase + maxPossibleBonus) / 240;
+            
+            const minWageDisplay = Math.round(minWage * 100) / 100;
+            const maxWageDisplay = Math.round(maxWage * 100) / 100;
+            
+            modalHourlyWageDisplay.textContent = `${minWageDisplay} ~ ${maxWageDisplay}`;
+        }
+    }
+
+    baseSalaryInput.addEventListener('input', updateModalHourlyWageDisplay);
+    bonusInput.addEventListener('input', updateModalHourlyWageDisplay);
+
     document.getElementById('btnOpenSalaryModal').addEventListener('click', () => {
         baseSalaryInput.value = baseSalary;
         bonusInput.value = bonus;
+        updateModalHourlyWageDisplay(); 
         salaryModal.style.display = 'flex';
     });
+
     document.getElementById('btnCancelSalary').addEventListener('click', () => salaryModal.style.display = 'none');
+    
     document.getElementById('btnConfirmSalary').addEventListener('click', () => {
         baseSalary = parseFloat(baseSalaryInput.value) || 0;
-        bonus = parseFloat(bonusInput.value) || 0;
+        bonus = bonusInput.value !== '' ? parseFloat(bonusInput.value) : '';
         salaryModal.style.display = 'none';
+        calculatePay(); // 儲存後才更新主畫面
+    });
+
+    // --- 快速切換月份邏輯 ---
+    document.getElementById('btnPrevMonth').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar();
+        calculatePay();
+    });
+
+    document.getElementById('btnNextMonth').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
         calculatePay();
     });
 
