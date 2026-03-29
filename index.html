@@ -41,10 +41,10 @@
             font-size: 1.4em;
         }
 
-        /* 統計結果區塊最佳化：重新分配比例與動態縮放 */
+        /* 統計結果區塊 */
         .result-box {
             background: #eafaf1;
-            padding: 12px 10px; /* 稍微縮小左右內邊距 */
+            padding: 12px 10px;
             border-radius: 8px;
             margin: 0 0 15px 0;
             border: 2px solid var(--success);
@@ -59,13 +59,13 @@
         }
 
         .result-item:first-child {
-            flex: 0.7; /* 將時數區塊縮小 */
+            flex: 0.7;
             border-right: 1px solid #bdc3c7;
             padding-right: 5px;
         }
 
         .result-item:last-child {
-            flex: 1.3; /* 將金額區塊放大，給予更多水平空間 */
+            flex: 1.3;
             padding-left: 5px;
         }
 
@@ -88,10 +88,9 @@
         
         .val-pay { 
             color: var(--danger); 
-            /* 使用 clamp 讓字體在小螢幕自動縮小，大螢幕維持 1.15em */
             font-size: clamp(13px, 4vw, 1.15em); 
-            white-space: nowrap; /* 強制同一列 */
-            letter-spacing: -0.5px; /* 稍微縮減字距避免撐破 */
+            white-space: nowrap; 
+            letter-spacing: -0.5px; 
         }
 
         /* 頂部操作區與月份導覽 */
@@ -275,8 +274,16 @@
             text-align: center;
             border-bottom: 2px solid #ecf0f1;
             padding-bottom: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 5px; /* 縮小以容納副標題 */
             font-size: 1.2em;
+        }
+        
+        .modal-subtitle {
+            text-align: center;
+            color: #e67e22;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -456,9 +463,10 @@
 <div class="modal-overlay" id="salaryModal">
     <div class="modal-content">
         <h3>薪資設定</h3>
+        <div class="modal-subtitle" id="salaryModalMonthNote">此設定僅套用於 2026年3月</div>
         <div class="form-group">
             <label for="baseSalary">本薪 (元)</label>
-            <input type="number" id="baseSalary" value="30000" min="0" step="1000">
+            <input type="number" id="baseSalary" min="0" step="1000">
         </div>
         <div class="form-group">
             <label for="bonus">績效獎金 (元)</label>
@@ -467,7 +475,7 @@
         
         <div class="form-group">
             <label>計算時薪基準 (元/小時)</label>
-            <div class="calculated-wage">$ <span id="modalHourlyWageDisplay">125</span></div>
+            <div class="calculated-wage">$ <span id="modalHourlyWageDisplay">0</span></div>
         </div>
 
         <div class="modal-actions">
@@ -517,9 +525,8 @@
     let tempSelectYear = currentYear;
     let tempSelectMonth = currentMonth;
     
-    let allOvertimeData = {}; 
-    let baseSalary = 30000;
-    let bonus = ''; 
+    // 全新資料結構: { "2026-2": { base: 32000, bonus: '', hours: { "1": 2 } } }
+    let allData = {}; 
 
     let selectedDate = null;
     let tempHours = 0;
@@ -531,6 +538,7 @@
     const monthYearDisplay = document.getElementById('monthYearDisplay');
     
     const salaryModal = document.getElementById('salaryModal');
+    const salaryModalMonthNote = document.getElementById('salaryModalMonthNote');
     const baseSalaryInput = document.getElementById('baseSalary');
     const bonusInput = document.getElementById('bonus');
     const modalHourlyWageDisplay = document.getElementById('modalHourlyWageDisplay');
@@ -544,43 +552,75 @@
     const currentHoursDisplay = document.getElementById('currentHoursDisplay');
     const btnClearDay = document.getElementById('btnClearDay'); 
 
-    // --- 儲存與讀取 ---
+    // --- 儲存、讀取與舊資料無縫轉移 ---
     function loadData() {
-        const savedSalary = localStorage.getItem('ot_calc_baseSalary');
-        if (savedSalary !== null) {
-            baseSalary = parseFloat(savedSalary);
-            baseSalaryInput.value = baseSalary;
-        }
+        const v2Data = localStorage.getItem('ot_calc_data_v2'); // 使用新 Key 存放新結構
         
-        const savedBonus = localStorage.getItem('ot_calc_bonus');
-        if (savedBonus !== null && savedBonus !== '') {
-            bonus = parseFloat(savedBonus);
-            bonusInput.value = bonus;
+        if (v2Data) {
+            try { allData = JSON.parse(v2Data); } catch (e) { allData = {}; }
         } else {
-            bonus = '';
-            bonusInput.value = '';
-        }
+            // 自動偵測並轉移舊版資料
+            const oldDataStr = localStorage.getItem('ot_calc_all_data');
+            const oldBase = parseFloat(localStorage.getItem('ot_calc_baseSalary')) || 30000;
+            const oldBonusStr = localStorage.getItem('ot_calc_bonus');
+            const oldBonus = (oldBonusStr && oldBonusStr !== '') ? parseFloat(oldBonusStr) : '';
 
-        const savedData = localStorage.getItem('ot_calc_all_data');
-        if (savedData !== null) {
-            try { allOvertimeData = JSON.parse(savedData); } catch (e) { allOvertimeData = {}; }
+            if (oldDataStr) {
+                try {
+                    const oldData = JSON.parse(oldDataStr);
+                    for (const key in oldData) {
+                        allData[key] = {
+                            base: oldBase,
+                            bonus: oldBonus,
+                            hours: oldData[key] // 舊版的資料結構只有時數
+                        };
+                    }
+                } catch(e) {}
+            }
+            saveData(); // 轉移完成後儲存為新格式
         }
     }
 
     function saveData() {
-        localStorage.setItem('ot_calc_baseSalary', baseSalary);
-        localStorage.setItem('ot_calc_bonus', bonus); 
-        localStorage.setItem('ot_calc_all_data', JSON.stringify(allOvertimeData));
+        localStorage.setItem('ot_calc_data_v2', JSON.stringify(allData));
     }
 
+    // 取得當前月份的 Key
     function getCurrentMonthKey() {
         return `${currentYear}-${currentMonth}`;
     }
 
-    function getMonthData() {
+    // --- 核心邏輯：初始化與切換月份時的資料同步 (自動抓上個月) ---
+    function syncMonthData() {
         const key = getCurrentMonthKey();
-        if (!allOvertimeData[key]) allOvertimeData[key] = {};
-        return allOvertimeData[key];
+        
+        // 如果這個月還沒有資料，就去找上個月的薪水設定來繼承
+        if (!allData[key]) {
+            let pMonth = currentMonth - 1;
+            let pYear = currentYear;
+            if (pMonth < 0) { pMonth = 11; pYear--; }
+            const prevKey = `${pYear}-${pMonth}`;
+
+            let inheritedBase = 30000;
+            let inheritedBonus = '';
+
+            if (allData[prevKey]) {
+                inheritedBase = allData[prevKey].base;
+                inheritedBonus = allData[prevKey].bonus;
+            }
+
+            // 建立這個月的專屬紀錄
+            allData[key] = {
+                base: inheritedBase,
+                bonus: inheritedBonus,
+                hours: {}
+            };
+        }
+    }
+
+    // 取得當前月份的獨立資料包
+    function getMonthData() {
+        return allData[getCurrentMonthKey()];
     }
 
     // --- 工具函式：計算當月的工作日天數 ---
@@ -617,7 +657,8 @@
             calendarGrid.appendChild(document.createElement('div'));
         }
 
-        const monthData = getMonthData();
+        const currentMonthInfo = getMonthData();
+        const monthHoursData = currentMonthInfo.hours;
 
         for (let i = 1; i <= daysInMonth; i++) {
             const cell = document.createElement('div');
@@ -633,8 +674,8 @@
             const hoursBadge = document.createElement('div');
             hoursBadge.className = 'hours-badge';
             
-            if (monthData[i]) {
-                hoursBadge.textContent = `${monthData[i]} hr`;
+            if (monthHoursData[i]) {
+                hoursBadge.textContent = `${monthHoursData[i]} hr`;
                 cell.classList.add('has-hours');
             }
             
@@ -646,22 +687,25 @@
         }
     }
 
-    // --- 計算邏輯 ---
+    // --- 計算邏輯 (使用各月獨立薪資) ---
     function calculatePay() {
-        const base = baseSalary || 0;
-        const isBonusEntered = bonus !== '';
-        const userBonus = isBonusEntered ? parseFloat(bonus) : 0;
+        const currentMonthInfo = getMonthData();
+        
+        const base = currentMonthInfo.base || 0;
+        const bonusStr = currentMonthInfo.bonus;
+        const isBonusEntered = bonusStr !== '';
+        const userBonus = isBonusEntered ? parseFloat(bonusStr) : 0;
 
         const weekdays = getWeekdaysInMonth(currentYear, currentMonth);
         const maxPossibleBonus = weekdays * 60;
 
         let totalHours = 0; 
         let multiplierSum = 0; 
-        const monthData = getMonthData();
+        const monthHoursData = currentMonthInfo.hours;
 
-        for (const dateStr in monthData) {
+        for (const dateStr in monthHoursData) {
             const date = parseInt(dateStr);
-            const hours = monthData[date];
+            const hours = monthHoursData[date];
             
             if (hours > 0) {
                 totalHours += hours; 
@@ -695,7 +739,6 @@
             if (minPay === maxPay) {
                 totalOvertimePayDisplay.textContent = minPay.toLocaleString();
             } else {
-                // 移除波浪號兩側空白，節省橫向空間避免被切掉
                 totalOvertimePayDisplay.textContent = `${minPay.toLocaleString()}~${maxPay.toLocaleString()}`;
             }
         }
@@ -722,7 +765,6 @@
             const minWageDisplay = Math.round(minWage * 100) / 100;
             const maxWageDisplay = Math.round(maxWage * 100) / 100;
             
-            // 移除波浪號兩側空白
             modalHourlyWageDisplay.textContent = `${minWageDisplay}~${maxWageDisplay}`;
         }
     }
@@ -731,8 +773,10 @@
     bonusInput.addEventListener('input', updateModalHourlyWageDisplay);
 
     document.getElementById('btnOpenSalaryModal').addEventListener('click', () => {
-        baseSalaryInput.value = baseSalary;
-        bonusInput.value = bonus;
+        const currentMonthInfo = getMonthData();
+        baseSalaryInput.value = currentMonthInfo.base;
+        bonusInput.value = currentMonthInfo.bonus;
+        salaryModalMonthNote.textContent = `此設定僅套用於 ${currentYear}年${currentMonth + 1}月`;
         updateModalHourlyWageDisplay(); 
         salaryModal.style.display = 'flex';
     });
@@ -740,8 +784,9 @@
     document.getElementById('btnCancelSalary').addEventListener('click', () => salaryModal.style.display = 'none');
     
     document.getElementById('btnConfirmSalary').addEventListener('click', () => {
-        baseSalary = parseFloat(baseSalaryInput.value) || 0;
-        bonus = bonusInput.value !== '' ? parseFloat(bonusInput.value) : '';
+        const currentMonthInfo = getMonthData();
+        currentMonthInfo.base = parseFloat(baseSalaryInput.value) || 0;
+        currentMonthInfo.bonus = bonusInput.value !== '' ? parseFloat(bonusInput.value) : '';
         salaryModal.style.display = 'none';
         calculatePay(); 
     });
@@ -752,6 +797,7 @@
             currentMonth = 11;
             currentYear--;
         }
+        syncMonthData(); // 每次切換月份先執行同步與繼承
         renderCalendar();
         calculatePay();
     });
@@ -762,6 +808,7 @@
             currentMonth = 0;
             currentYear++;
         }
+        syncMonthData(); // 每次切換月份先執行同步與繼承
         renderCalendar();
         calculatePay();
     });
@@ -797,14 +844,15 @@
         currentYear = tempSelectYear;
         currentMonth = tempSelectMonth;
         dateModal.style.display = 'none';
+        syncMonthData(); // 每次跨月跳轉先執行同步與繼承
         renderCalendar();
         calculatePay();
     });
 
     function openHoursModal(date) {
         selectedDate = date;
-        const monthData = getMonthData();
-        tempHours = monthData[date] || 0;
+        const currentMonthInfo = getMonthData();
+        tempHours = currentMonthInfo.hours[date] || 0;
         const dayOfWeek = new Date(currentYear, currentMonth, date).getDay();
         const satNote = (dayOfWeek === 6) ? ' <span style="color:#e67e22; font-size:0.8em;">(週六雙倍)</span>' : '';
         modalDateDisplay.innerHTML = `${currentMonth + 1}/${date} 加班時數${satNote}`;
@@ -820,7 +868,6 @@
         currentHoursDisplay.textContent = tempHours;
     });
     
-    // 單日清除時數邏輯
     btnClearDay.addEventListener('click', () => {
         tempHours = 0;
         currentHoursDisplay.textContent = tempHours;
@@ -829,9 +876,12 @@
     document.getElementById('btnCancelHours').addEventListener('click', () => hoursModal.style.display = 'none');
     
     document.getElementById('btnConfirmHours').addEventListener('click', () => {
-        const monthData = getMonthData();
-        if (tempHours === 0) delete monthData[selectedDate];
-        else monthData[selectedDate] = tempHours;
+        const currentMonthInfo = getMonthData();
+        if (tempHours === 0) {
+            delete currentMonthInfo.hours[selectedDate];
+        } else {
+            currentMonthInfo.hours[selectedDate] = tempHours;
+        }
         hoursModal.style.display = 'none';
         renderCalendar();
         calculatePay();
@@ -841,9 +891,12 @@
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
     });
 
+    // 最佳化清除邏輯：現在只清除該月的「時數」，保留該月的「薪資設定」，以免不小心刪掉還要重填
     document.getElementById('btnClear').addEventListener('click', () => {
-        if (confirm(`確定要清除 ${currentYear}年 ${currentMonth + 1}月 的所有紀錄嗎？`)) {
-            delete allOvertimeData[getCurrentMonthKey()];
+        if (confirm(`確定要清除 ${currentYear}年 ${currentMonth + 1}月 的所有加班時數嗎？\n(薪資設定將會保留)`)) {
+            const currentMonthInfo = getMonthData();
+            currentMonthInfo.hours = {}; // 僅清空時數
+            saveData();
             renderCalendar();
             calculatePay();
         }
@@ -851,6 +904,7 @@
 
     // --- 啟動初始化 ---
     loadData();
+    syncMonthData(); 
     renderCalendar();
     calculatePay();
 
