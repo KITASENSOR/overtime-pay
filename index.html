@@ -41,27 +41,32 @@
             font-size: 1.4em;
         }
 
-        /* 統計結果區塊 */
+        /* 統計結果區塊最佳化：重新分配比例與動態縮放 */
         .result-box {
             background: #eafaf1;
-            padding: 12px 15px;
+            padding: 12px 10px; /* 稍微縮小左右內邊距 */
             border-radius: 8px;
             margin: 0 0 15px 0;
             border: 2px solid var(--success);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            overflow: hidden; /* 防止內容溢出 */
         }
 
         .result-item {
             text-align: center;
-            flex: 1;
-            min-width: 0; /* 讓 flex 子元素可以縮小 */
+            min-width: 0;
         }
 
         .result-item:first-child {
+            flex: 0.7; /* 將時數區塊縮小 */
             border-right: 1px solid #bdc3c7;
+            padding-right: 5px;
+        }
+
+        .result-item:last-child {
+            flex: 1.3; /* 將金額區塊放大，給予更多水平空間 */
+            padding-left: 5px;
         }
 
         .result-label {
@@ -77,20 +82,16 @@
 
         .val-hours { 
             color: var(--warning); 
-            font-size: 1.3em; 
-            white-space: nowrap; /* 強制同一列 */
+            font-size: 1.25em; 
+            white-space: nowrap; 
         }
         
         .val-pay { 
             color: var(--danger); 
-            font-size: 1.1em; 
+            /* 使用 clamp 讓字體在小螢幕自動縮小，大螢幕維持 1.15em */
+            font-size: clamp(13px, 4vw, 1.15em); 
             white-space: nowrap; /* 強制同一列 */
-            /* 如果螢幕真的太窄，允許水平滑動查看 */
-            overflow-x: auto; 
-            scrollbar-width: none; /* 隱藏捲軸 Firefox */
-        }
-        .val-pay::-webkit-scrollbar {
-            display: none; /* 隱藏捲軸 Chrome/Safari */
+            letter-spacing: -0.5px; /* 稍微縮減字距避免撐破 */
         }
 
         /* 頂部操作區與月份導覽 */
@@ -295,7 +296,6 @@
             box-sizing: border-box;
         }
 
-        /* 即時計算時薪的顯示區塊 */
         .calculated-wage {
             background: #ecf0f1;
             padding: 10px;
@@ -377,13 +377,12 @@
         .stepper span {
             font-size: 26px;
             font-weight: bold;
-            margin: 0 15px; /* 微調間距以容納新按鈕 */
+            margin: 0 15px;
             min-width: 35px;
             text-align: center;
             color: var(--primary);
         }
         
-        /* 單日清除按鈕專屬樣式 */
         .btn-clear-day {
             background: transparent !important;
             color: var(--danger) !important;
@@ -543,7 +542,7 @@
     const hoursModal = document.getElementById('hoursModal');
     const modalDateDisplay = document.getElementById('modalDateDisplay');
     const currentHoursDisplay = document.getElementById('currentHoursDisplay');
-    const btnClearDay = document.getElementById('btnClearDay'); // 新增單日清除按鈕對象
+    const btnClearDay = document.getElementById('btnClearDay'); 
 
     // --- 儲存與讀取 ---
     function loadData() {
@@ -584,7 +583,7 @@
         return allOvertimeData[key];
     }
 
-    // --- 工具函式：計算當月的工作日天數 (週一至週五) ---
+    // --- 工具函式：計算當月的工作日天數 ---
     function getWeekdaysInMonth(year, month) {
         let count = 0;
         let daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -696,7 +695,8 @@
             if (minPay === maxPay) {
                 totalOvertimePayDisplay.textContent = minPay.toLocaleString();
             } else {
-                totalOvertimePayDisplay.textContent = `${minPay.toLocaleString()} ~ ${maxPay.toLocaleString()}`;
+                // 移除波浪號兩側空白，節省橫向空間避免被切掉
+                totalOvertimePayDisplay.textContent = `${minPay.toLocaleString()}~${maxPay.toLocaleString()}`;
             }
         }
         
@@ -722,7 +722,8 @@
             const minWageDisplay = Math.round(minWage * 100) / 100;
             const maxWageDisplay = Math.round(maxWage * 100) / 100;
             
-            modalHourlyWageDisplay.textContent = `${minWageDisplay} ~ ${maxWageDisplay}`;
+            // 移除波浪號兩側空白
+            modalHourlyWageDisplay.textContent = `${minWageDisplay}~${maxWageDisplay}`;
         }
     }
 
@@ -819,7 +820,7 @@
         currentHoursDisplay.textContent = tempHours;
     });
     
-    // --- 新增：單日清除時數邏輯 ---
+    // 單日清除時數邏輯
     btnClearDay.addEventListener('click', () => {
         tempHours = 0;
         currentHoursDisplay.textContent = tempHours;
